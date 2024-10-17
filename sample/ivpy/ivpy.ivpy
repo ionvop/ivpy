@@ -1,0 +1,235 @@
+$sys;
+$os;
+
+> main()
+    data = open(sys.argv[1]).read();
+    data = compile(data);
+    output_path = os.path.dirname(sys.argv[1]) + "/output2.py";
+    open(output_path, "w").write(data);
+    parameters = "\" ".join(sys.argv[2:]);
+    os.system(f"python \"{output_path}\" \"{parameters}");
+    os.remove(output_path);
+<;
+
+> compile(data, indent = 0)
+    ? indent < 0:
+        indent = 0;
+    ?;
+
+    result = "";
+    i = 0;
+
+    [
+        ? i >= len(data):
+            \
+        ?;
+
+        char = data[i];
+
+        ? char == ".":
+            +i;
+            temp, i = scan(data, i, [";"]);
+            temp = temp.strip();
+            +result: f"{' ' * indent}print({temp})\n";
+        :? char == ",":
+            +i;
+            temp, i = scan(data, i, [":", ";"]);
+            char = data[i];
+            temp = temp.strip();
+
+            ? char == ";":
+                +result: f"{' ' * indent}{temp} = input()\n";
+                +i;
+                /
+            ?;
+            
+            +i;
+            temp2, i = scan(data, i, [";"]);
+            temp2 = temp2.strip();
+            +result: f"{' ' * indent}{temp} = input({temp2})\n";
+        :? char == "?":
+            ? data[i + 1] == ";":
+                +i: 2;
+                -indent;
+                /
+            ?;
+
+            +i;
+            temp, i = scan(data, i, [":"]);
+            temp = temp.strip();
+            +result: f"{' ' * indent}if {temp}:\n";
+            +indent;
+        :? char == ":":
+            ? data[i + 1] == "?":
+                +i: 2;
+                temp, i = scan(data, i, [":"]);
+                temp = temp.strip();
+                +result: f"{' ' * (indent - 1)}elif {temp}:\n";
+                +i;
+                /
+            ?;
+
+            +result: f"{' ' * (indent - 1)}else:\n";
+        :? char == "[":
+            +result: f"{' ' * indent}while True:\n";
+            +indent;
+        :? char == "]":
+            -indent;
+        :? char == "\\":
+            +result: f"{' ' * indent}break\n";
+        :? char == "/":
+            +result: f"{' ' * indent}continue\n";
+        :? char == ">":
+            +i;
+            temp, i = scan(data, i, [")"]);
+            temp = temp.strip();
+            +result: f"{' ' * indent}def {temp}):\n";
+            +indent;
+        :? char == "<":
+            +i;
+            temp, i = scan(data, i, [";"]);
+            temp = temp.strip();
+            +result: f"{' ' * indent}return {temp}\n";
+            -indent;
+        :? char == "|":
+            +result: f"{' ' * indent}pass\n";
+        :? char == "!":
+            ? data[i + 1] == ";":
+                +result: f"{' ' * indent}exit()\n";
+                +i: 2;
+                /
+            ?;
+
+            +i;
+            temp, i = scan(data, i, [";"]);
+            temp = temp.strip();
+            +result: f"{' ' * indent}print({temp})\n";
+            +result: f"{' ' * indent}exit()\n";
+        :? char >> ["+", "-", "*", "/", "%"]:
+            operator = char;
+
+            ? operator == "*" && data[i + 1] == "*":
+                +i;
+                operator = "**";
+            ?;
+
+            +i;
+            temp, i = scan(data, i, [":", ";"]);
+            char = data[i];
+            temp = temp.strip();
+
+            ? char == ";":
+                default = 1;
+
+                ? operator >> ["*", "/", "%", "**"]:
+                    default = 2;
+                ?;
+
+                +result: f"{' ' * indent}{temp} {operator}= {default}\n";
+                +i;
+                /
+            ?;
+            
+            +i;
+            temp2, i = scan(data, i, [";"]);
+            temp2 = temp2.strip();
+            +result: f"{' ' * indent}{temp} {operator}= {temp2}\n";
+        :? char == "@":
+            +i;
+            temp, i = scan(data, i, [";"]);
+            temp = temp.strip();
+            script_dir = get_abs_script_path(temp);
+            import_data = open(script_dir).read();
+            import_data = compile(import_data, indent);
+            +result: f"{' ' * indent}{import_data}\n";
+        :? char == "$":
+            +i;
+            temp, i = scan(data, i, [";"]);
+            temp = temp.strip();
+            +result: f"{' ' * indent}import {temp}\n";
+        :? char >> [" ", "\n", "\t"]:
+            ;
+        :
+            ? char == "_":
+                +i;
+            ?;
+
+            temp, i = scan(data, i, [";"]);
+            temp = temp.strip();
+            +result: f"{' ' * indent}{temp}\n";
+        ?;
+
+        +i;
+    ]
+< result;
+
+> scan(data, start, delimiters)
+    i = start;
+    result = "";
+    is_string = --;
+
+    [
+        ? i >= len(data):
+            \
+        ?;
+
+        char = data[i];
+
+        ? is_string && char == "\\":
+            +result: f"\\{data[i + 1]}";
+            +i: 2;
+            /
+        ?;
+
+        ? is_string == --:
+            ? char == "+" && data[i + 1] == "+":
+                +result: "True";
+                +i: 2;
+                /
+            :? char == "-" && data[i + 1] == "-":
+                +result: "False";
+                +i: 2;
+                /
+            :? char == "?" && data[i + 1] == "?":
+                +result: "None";
+                +i: 2;
+                /
+            :? char == "&" && data[i + 1] == "&":
+                +result: " and ";
+                +i: 2;
+                /
+            :? char == "|" && data[i + 1] == "|":
+                +result: " or ";
+                +i: 2;
+                /
+            :? char == "!" && data[i + 1] != "=":
+                +result: " not ";
+                +i;
+                /
+            :? char == ">" && data[i + 1] == ">":
+                +result: " in ";
+                +i: 2;
+                /
+            ?;
+        ?;
+
+        ? char == "\"":
+            is_string = !is_string;
+        ?;
+
+        ? char >> delimiters && !is_string:
+            \
+        ?;
+
+        +result: char;
+        +i;
+    ]
+
+    result = result.strip();
+< result, i;
+
+> get_abs_script_path(file_path = "")
+    script_path = os.path.dirname(sys.argv[1]);
+< os.path.join(script_path, file_path);
+
+main();

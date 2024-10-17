@@ -1,0 +1,1 @@
+>add(a,b)<float(a)+float(b);>subtract(a,b)<float(a)-float(b);>multiply(a,b)<float(a)*float(b);>divide(a,b)<float(a)/float(b);

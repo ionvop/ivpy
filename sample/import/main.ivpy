@@ -1,0 +1,1 @@
+@math.ivpy;[,operator:"Type an operator: ";?operator!>>["+","-","*","/"]:."Invalid operator";/?;\],num1:"Type first number: ";,num2:"Type second number: ";?operator=="+":.add(num1,num2);:?operator=="-":.subtract(num1,num2);:?operator=="*":.multiply(num1,num2);:?operator=="/":.divide(num1,num2);?;

@@ -1,0 +1,1 @@
+"ivpy.lnk" "%~dp0ivpy_short.ivpy" %*
