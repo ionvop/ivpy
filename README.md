@@ -1,5 +1,5 @@
 # ivpy
-A programming language focusing on hacky syntax at the cost of readability and intuitiveness.
+A programming language focusing on hacky syntax at the cost of readability and intuitiveness. The polar opposite from the Zen of Python.
 
 ## Syntax
 
