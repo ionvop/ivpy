@@ -1,1 +1,1 @@
-"ivpy.lnk" "%~dp0ivpy_short.ivpy" %*
+"ivpy.lnk" "%~dp0main_short.ivpy" %*
