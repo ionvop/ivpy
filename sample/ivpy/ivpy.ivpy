@@ -21,7 +21,7 @@ $os;
 
     [
         ? i >= len(data):
-            \
+            \;
         ?;
 
         char = data[i];
@@ -40,7 +40,7 @@ $os;
             ? char == ";":
                 +result: f"{' ' * indent}{temp} = input()\n";
                 +i;
-                /
+                /;
             ?;
             
             +i;
@@ -51,7 +51,7 @@ $os;
             ? data[i + 1] == ";":
                 +i: 2;
                 -indent;
-                /
+                /;
             ?;
 
             +i;
@@ -66,7 +66,7 @@ $os;
                 temp = temp.strip();
                 +result: f"{' ' * (indent - 1)}elif {temp}:\n";
                 +i;
-                /
+                /;
             ?;
 
             +result: f"{' ' * (indent - 1)}else:\n";
@@ -75,9 +75,11 @@ $os;
             +indent;
         :? char == "]":
             -indent;
-        :? char == "\\":
+        :? char == "\\" && data[i + 1] == ";":
+            +i;
             +result: f"{' ' * indent}break\n";
-        :? char == "/":
+        :? char == "/" && data[i + 1] == ";":
+            +i;
             +result: f"{' ' * indent}continue\n";
         :? char == ">":
             +i;
@@ -94,17 +96,52 @@ $os;
         :? char == "|":
             +result: f"{' ' * indent}pass\n";
         :? char == "!":
-            ? data[i + 1] == ";":
-                +result: f"{' ' * indent}exit()\n";
+            ? data[i + 1] == ":":
                 +i: 2;
-                /
+                +result: f"{' ' * indent}try:\n";
+                +indent;
+                /;
+            ?;
+
+            ? data[i + 1] == "!":
+                ? data[i + 2] == "!":
+                    +i: 3;
+                    temp, i = scan(data, i, [";"]);
+                    temp = temp.strip();
+                    +result: f"{' ' * indent}raise {temp}\n";
+                    +i;
+                    /;
+                ?;
+
+                ? data[i + 2] == ":":
+                    +i: 3;
+                    +result: f"{' ' * (indent - 1)}except:\n";
+                    /;
+                ?;
+
+                +i: 2;
+                temp, i = scan(data, i, [":"]);
+                temp = temp.strip();
+                +result: f"{' ' * (indent - 1)}except {temp}:\n";
+                +i;
+                /;
+            ?;
+
+            ? data[i + 1] == ";":
+                +i: 2;
+                -indent;
+                /;
             ?;
 
             +i;
             temp, i = scan(data, i, [";"]);
             temp = temp.strip();
-            +result: f"{' ' * indent}print({temp})\n";
-            +result: f"{' ' * indent}exit()\n";
+            +result: f"{' ' * (indent)}exit({temp})\n";
+        :? char == "/" && data[i + 1] == "/":
+            +i: 2;
+            temp, i = scan(data, i, ["\n"]);
+            temp = temp.strip();
+            +result: f"{' ' * indent}# {temp}\n";
         :? char >> ["+", "-", "*", "/", "%"]:
             operator = char;
 
@@ -127,7 +164,7 @@ $os;
 
                 +result: f"{' ' * indent}{temp} {operator}= {default}\n";
                 +i;
-                /
+                /;
             ?;
             
             +i;
@@ -170,7 +207,7 @@ $os;
 
     [
         ? i >= len(data):
-            \
+            \;
         ?;
 
         char = data[i];
@@ -178,38 +215,38 @@ $os;
         ? is_string && char == "\\":
             +result: f"\\{data[i + 1]}";
             +i: 2;
-            /
+            /;
         ?;
 
         ? is_string == --:
             ? char == "+" && data[i + 1] == "+":
                 +result: "True";
                 +i: 2;
-                /
+                /;
             :? char == "-" && data[i + 1] == "-":
                 +result: "False";
                 +i: 2;
-                /
+                /;
             :? char == "?" && data[i + 1] == "?":
                 +result: "None";
                 +i: 2;
-                /
+                /;
             :? char == "&" && data[i + 1] == "&":
                 +result: " and ";
                 +i: 2;
-                /
+                /;
             :? char == "|" && data[i + 1] == "|":
                 +result: " or ";
                 +i: 2;
-                /
+                /;
             :? char == "!" && data[i + 1] != "=":
                 +result: " not ";
                 +i;
-                /
+                /;
             :? char == ">" && data[i + 1] == ">":
                 +result: " in ";
                 +i: 2;
-                /
+                /;
             ?;
         ?;
 
@@ -218,7 +255,7 @@ $os;
         ?;
 
         ? char >> delimiters && !is_string:
-            \
+            \;
         ?;
 
         +result: char;
