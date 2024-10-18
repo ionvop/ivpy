@@ -68,9 +68,11 @@ def compile(data: str, indent: int = 0) -> str:
             indent += 1
         elif char == "]":
             indent -= 1
-        elif char == "\\":
+        elif char == "\\" and data[i + 1] == ";":
+            i += 1
             result += f"{' ' * indent}break\n"
-        elif char == "/":
+        elif char == "/" and data[i + 1] == ";":
+            i += 1
             result += f"{' ' * indent}continue\n"
         elif char == ">":
             i += 1
